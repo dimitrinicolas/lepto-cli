@@ -1,42 +1,64 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
-const chalk = require('chalk');
 const chokidar = require('chokidar');
-const minimist = require('minimist');
+const program = require('commander');
+const path = require('path');
 
 const lepto = require('../../lepto/src/lepto.js');
 
 const loadConfig = require('../src/load-config.js');
 const log = require('../src/log.js');
+const setup = require('../src/setup.js');
 
-const argv = minimist(process.argv.slice(2), {
-  alias: {
-    i: 'input',
-    o: 'output',
-    w: 'watch',
-    c: 'config',
-    l: 'logLevel'
-  }
-});
+const pkg = require('../package.json');
+
+let commandLaunched = false;
+
+program
+  .version(pkg.version)
+  .option('-i, --input [dir]', 'Set input directory')
+  .option('-o, --output [dir]', 'Set output directory')
+  .option('-c, --config [file]', 'Path to a config file (default: lepto.config.json)')
+  .option('-d --dataOutput [file]', 'Set the output json file for the data (eg: ./output/data.json)')
+  .option('-w, --watch', 'Watch for files changes')
+  .option('-l, --logLevel [0-3]', 'Set the log level from 0 (silent) to 3 (all informations)', /^(0|1|2|3)$/i)
+  .option('--watchConfig', 'Watch for config file change')
+  .option('--followUnlink', 'Remove files in the output when they are removed from the input directory');
+
+program
+  .command('setup')
+  .description('Create a lepto config file')
+  .action(() => {
+    commandLaunched = true;
+    setup();
+  });
+
+program
+  .parse(process.argv);
+
+if (commandLaunched) {
+  return;
+}
 
 let loadedConfig = null;
 
-if (argv.config) {
-  const loaded = loadConfig(path.resolve(argv.config));
+if (program.config) {
+  const loaded = loadConfig(path.resolve(program.config));
   if (loaded.success) {
     loadedConfig = loaded;
   }
   else {
-    log(['Lepto -', loaded.msg], 'red', 1);
+    log(['Lepto -', loaded.msg], {
+      color: 'red',
+      level: 1
+    });
     return;
   }
 }
 else {
   const jsonConfigResult = loadConfig(path.resolve(process.cwd(), './lepto.config.json'));
   if (jsonConfigResult.success) {
-    loadedConfig = newConfigResult;
+    loadedConfig = jsonConfigResult;
   }
   else {
     const jsConfigResult = loadConfig(path.resolve(process.cwd(), './lepto.config.js'));
@@ -47,7 +69,10 @@ else {
 }
 
 if (!loadedConfig) {
-  log('Lepto - No config file found', 'red', 1);
+  log('Lepto - No config file found, use the option --config <filepath>, or you can create one by running "lepto setup"', {
+    color: 'red',
+    level: 1
+  });
   return;
 }
 
@@ -56,14 +81,18 @@ const argvOpts = {
   'input': 'input',
   'output': 'output',
   'watch': 'watch',
-  'logLevel': 'logLevel'
+  'watchConfig': 'watchConfig',
+  'logLevel': 'logLevel',
+  'followUnlink': 'followUnlink',
+  'dataOutput': 'dataOutput'
 };
 for (let item in argvOpts) {
-  if (typeof argv[item] !== 'undefined') {
-    cliConfig[argvOpts[item]] = argv[item];
+  if (typeof program[item] !== 'undefined') {
+    cliConfig[argvOpts[item]] = program[item];
   }
 }
 
+Object.assign(loadedConfig.config, cliConfig);
 const runner = lepto(loadedConfig.config, {
   cli: true,
   cliConfig
@@ -85,7 +114,10 @@ if (loadedConfig.config.watchConfig) {
         runner.handleConfigUpdate(newConfig.config);
       }
       else {
-        log(['Lepto - Unable to get config file:', newConfig.msg], 'red', 1);
+        log(['Lepto - Unable to get config file:', newConfig.msg], {
+          color: 'red',
+          level: 1
+        });
       }
     }
   });
