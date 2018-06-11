@@ -1,0 +1,30 @@
+{
+  "name": "lepto-cli",
+  "version": "1.0.0",
+  "description": "CLI for Lepto tool",
+  "bin": {
+    "lepto": "./bin/lepto"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dimitrinicolas/lepto-cli.git"
+  },
+  "keywords": [
+    "lepto",
+    "front-end",
+    "images",
+    "optimization",
+    "cli"
+  ],
+  "author": "Dimitri NICOLAS <dimitri@fivecorp.fr>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dimitrinicolas/lepto-cli/issues"
+  },
+  "homepage": "https://github.com/dimitrinicolas/lepto-cli",
+  "dependencies": {
+    "chalk": "^2.4.1",
+    "minimist": "^1.2.0",
+    "path": "^0.12.7"
+  }
+}
