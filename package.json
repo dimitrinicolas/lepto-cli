@@ -24,6 +24,7 @@
   "homepage": "https://github.com/dimitrinicolas/lepto-cli",
   "dependencies": {
     "chalk": "^2.4.1",
+    "chokidar": "^2.0.3",
     "minimist": "^1.2.0",
     "path": "^0.12.7"
   }

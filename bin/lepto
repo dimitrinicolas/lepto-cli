@@ -3,11 +3,13 @@
 const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
-const minimist = require('minimist')
+const chokidar = require('chokidar');
+const minimist = require('minimist');
 
 const lepto = require('../../lepto/src/lepto.js');
-const loadConfig = require('../../lepto/src/load-config.js');
-// TODO all config watching inside lepto-cli
+
+const loadConfig = require('../src/load-config.js');
+const log = require('../src/log.js');
 
 const argv = minimist(process.argv.slice(2), {
   alias: {
@@ -22,22 +24,22 @@ const argv = minimist(process.argv.slice(2), {
 let loadedConfig = null;
 
 if (argv.config) {
-  const loaded = loadConfig(path.resolve(argv.config), { cli: true });
+  const loaded = loadConfig(path.resolve(argv.config));
   if (loaded.success) {
     loadedConfig = loaded;
   }
   else {
-    console.log(chalk.red.bold('Lepto -', loaded.msg));
+    log(['Lepto -', loaded.msg], 'red', 1);
     return;
   }
 }
 else {
-  const jsonConfigResult = loadConfig(path.resolve(process.cwd(), './lepto.config.json'), { cli: true });
+  const jsonConfigResult = loadConfig(path.resolve(process.cwd(), './lepto.config.json'));
   if (jsonConfigResult.success) {
     loadedConfig = newConfigResult;
   }
   else {
-    const jsConfigResult = loadConfig(path.resolve(process.cwd(), './lepto.config.js'), { cli: true });
+    const jsConfigResult = loadConfig(path.resolve(process.cwd(), './lepto.config.js'));
     if (jsConfigResult.success) {
       loadedConfig = jsConfigResult;
     }
@@ -45,16 +47,46 @@ else {
 }
 
 if (!loadedConfig) {
-  console.log(chalk.red.bold('Lepto - No config file found'));
+  log('Lepto - No config file found', 'red', 1);
   return;
 }
 
 const cliConfig = {};
-const argvOpts = ['input', 'output', 'watch', 'logLevel'];
-for (let item of argvOpts) {
+const argvOpts = {
+  'input': 'input',
+  'output': 'output',
+  'watch': 'watch',
+  'logLevel': 'logLevel'
+};
+for (let item in argvOpts) {
   if (typeof argv[item] !== 'undefined') {
-    cliConfig[item] = argv[item];
+    cliConfig[argvOpts[item]] = argv[item];
   }
 }
 
-lepto(loadedConfig, cliConfig);
+const runner = lepto(loadedConfig.config, {
+  cli: true,
+  cliConfig
+});
+
+runner.handleLog(log);
+
+if (typeof loadedConfig.config.logLevel !== 'undefined') {
+  log.setLevel(loadedConfig.config.logLevel);
+}
+
+if (loadedConfig.config.watchConfig) {
+  this.configWatcher = chokidar.watch(loadedConfig.filepath, {
+    ignoreInitial: true
+  }).on('all', (event, path) => {
+    if (['add', 'change'].indexOf(event) !== -1) {
+      const newConfig = loadConfig(path);
+      if (newConfig.success) {
+        runner.handleConfigUpdate(newConfig.config);
+      }
+      else {
+        log(['Lepto - Unable to get config file:', newConfig.msg], 'red', 1);
+      }
+    }
+  });
+}
