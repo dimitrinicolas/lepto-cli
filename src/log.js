@@ -7,6 +7,25 @@ const colors = {
   green: chalk.keyword('lime')
 };
 
+const params = {
+  error: {
+    color: 'red',
+    level: 1
+  },
+  warn: {
+    color: 'orange',
+    level: 2
+  },
+  info: {
+    color: 'white',
+    level: 3
+  },
+  success: {
+    color: 'green',
+    level: 3
+  }
+};
+
 let levels = {
   max: 3,
   min: 0
@@ -56,4 +75,4 @@ const log = (txt='', opts={}) => {
   }
 };
 
-module.exports = Object.assign(log, { getLevel, getLevelCode, setLevel });
+module.exports = Object.assign(log, { getLevel, getLevelCode, setLevel, params });

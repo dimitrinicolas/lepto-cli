@@ -54,7 +54,7 @@ const setup = () => {
     {
       type: 'confirm',
       name: 'retina',
-      message: 'Retina @2x and @3x for png?',
+      message: 'Retina @2x for png?',
       default: true
     },
 
@@ -145,7 +145,7 @@ const setup = () => {
     if (a.retina) {
       pngPlugins.push({
         name: 'lepto-resize',
-        retina: [2, 3]
+        retina: [2]
       });
     }
     if (a.webp) {

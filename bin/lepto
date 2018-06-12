@@ -9,6 +9,7 @@ const lepto = require('../../lepto/src/lepto.js');
 const loadConfig = require('../src/load-config.js');
 const log = require('../src/log.js');
 const setup = require('../src/setup.js');
+const beautifier = require('../src/beautifier.js');
 
 const pkg = require('../package.json');
 
@@ -48,10 +49,7 @@ if (program.config) {
     loadedConfig = loaded;
   }
   else {
-    log(['Lepto -', loaded.msg], {
-      color: 'red',
-      level: 1
-    });
+    log(['Lepto -', loaded.msg], log.params.error);
     return;
   }
 }
@@ -69,10 +67,7 @@ else {
 }
 
 if (!loadedConfig) {
-  log('Lepto - No config file found, use the option --config <filepath>, or you can create one by running "lepto setup"', {
-    color: 'red',
-    level: 1
-  });
+  log(`Lepto - No config file found, use the option --config <filepath>, or you can create one by running "lepto setup"`, log.params.error);
   return;
 }
 
@@ -91,18 +86,38 @@ for (let item in argvOpts) {
     cliConfig[argvOpts[item]] = program[item];
   }
 }
-
 Object.assign(loadedConfig.config, cliConfig);
-const runner = lepto(loadedConfig.config, {
-  cli: true,
-  cliConfig
-});
-
-runner.handleLog(log);
-
 if (typeof loadedConfig.config.logLevel !== 'undefined') {
   log.setLevel(loadedConfig.config.logLevel);
 }
+
+const runner = lepto(loadedConfig.config, {
+  cli: true,
+  cliConfig
+})
+  .on('all', (data, event) => {
+    if (typeof data.msg !== 'undefined') {
+      log(data.msg, Object.assign(data, log.params[event] || {}));
+    }
+  })
+
+  .on('error', msg => {
+    log(msg, log.params.error);
+  })
+
+  .on('processed-file', (data) => {
+    let maxSave = 0;
+    let outputsText = [];
+    for (let i in data.output) {
+      maxSave = Math.min(Math.max(0, maxSave, 1 - data.outputSizes[i] / data.inputSize), 1);
+      outputsText.push(`${data.output[i]} (${beautifier.bytes(data.outputSizes[i])})`);
+    }
+    let saveText = `saved ${Math.floor(maxSave * 100 * 10) / 10 + '%'}`;
+    if (data.output.length > 1) {
+      outputsText = '[ ' + outputsText.join(', ') + ' ]';
+    }
+    log(`Processed ${data.adj}${data.input} (${beautifier.bytes(data.inputSize)}) in ${beautifier.time(data.timeSpent)} -> ${outputsText}, ${saveText}`, log.params.success);
+  });
 
 if (loadedConfig.config.watchConfig) {
   this.configWatcher = chokidar.watch(loadedConfig.filepath, {
@@ -114,10 +129,7 @@ if (loadedConfig.config.watchConfig) {
         runner.handleConfigUpdate(newConfig.config);
       }
       else {
-        log(['Lepto - Unable to get config file:', newConfig.msg], {
-          color: 'red',
-          level: 1
-        });
+        log(['Lepto - Unable to get config file:', newConfig.msg], log.params.error);
       }
     }
   });
