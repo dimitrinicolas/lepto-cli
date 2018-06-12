@@ -1,4 +1,5 @@
 const chalk = require('chalk');
+const childProcess = require('child_process');
 const cmdify = require('cmdify');
 const fse = require('fs-extra');
 const inquirer = require('inquirer');
@@ -109,8 +110,6 @@ const setup = () => {
 
   inquirer.prompt(questions).then(a => {
     const deps = ['lepto-cli'];
-    deps.push('lepto-jpeg');
-    deps.push('lepto-png');
 
     let jsonContent = {
       input: a.input,
@@ -136,22 +135,21 @@ const setup = () => {
     const jpgPlugins = [];
     const pngPlugins = [];
     if (a.resizeMaxWidth || a.retina) {
-      deps.push('lepto.resize');
+      deps.push('lepto-resize');
     }
     if (a.resizeMaxWidth) {
       jpgPlugins.push({
-        name: 'lepto.resize',
+        name: 'lepto-resize',
         maxWidth: parseInt(a.resizeMaxWidth)
       });
     }
     if (a.retina) {
       pngPlugins.push({
-        name: 'lepto.resize',
+        name: 'lepto-resize',
         retina: [2, 3]
       });
     }
     if (a.webp) {
-      deps.push('lepto-webp');
       jpgPlugins.push({
         name: 'lepto.webp',
         quality: 80
@@ -159,7 +157,7 @@ const setup = () => {
     }
     if (a.vibrant) {
       deps.push('lepto-vibrant-color');
-      jpgPlugins.push('lepto.vibrantColor');
+      jpgPlugins.push('lepto-vibrant-color');
     }
 
     if (jpgPlugins.length) {
@@ -220,10 +218,20 @@ const setup = () => {
               for (let dep of deps) {
                 cmdOpts.push(dep);
               }
-              const cmd = require('child_process').spawn(cmdify('npm'), cmdOpts, { stdio: 'pipe' });
+              let installationErrors = false;
+              const cmd = childProcess.spawn(cmdify('npm'), cmdOpts, { stdio: 'pipe' });
               cmd.stdout.pipe(ui.log);
+              cmd.stdout.on('data', function(data) {
+                console.log(data);
+              });
+              cmd.stderr.on('data', function(data) {
+                installationErrors = true;
+                console.log(chalk.red(data));
+              });
               cmd.on('close', () => {
-                ui.updateBottomBar('Installation done!\n');
+                if (!installationErrors) {
+                  ui.updateBottomBar(chalk.keyword('lime')('\nInstallation done!\n'));
+                }
                 process.exit();
               });
             }
