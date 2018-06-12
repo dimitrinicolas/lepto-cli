@@ -48,7 +48,7 @@ const setup = () => {
       type: 'input',
       name: 'jpgQ',
       message: 'Quality for your jpgs (1-100)',
-      default: 80,
+      default: 70,
       validator: Number
     },
     {
@@ -120,14 +120,13 @@ const setup = () => {
     if (a.dataOutput !== null) {
       jsonContent.dataOutput = a.dataOutput;
     }
-    jsonContent.use = [];
     jsonContent.filters = [];
 
-    jsonContent.use.push({
+    jsonContent.filters.push({
       name: 'lepto.jpeg',
       quality: parseInt(a.jpgQ)
     });
-    jsonContent.use.push({
+    jsonContent.filters.push({
       name: 'lepto.png',
       compression: 9
     });
@@ -150,9 +149,10 @@ const setup = () => {
       });
     }
     if (a.webp) {
+      deps.push('lepto-webp');
       jpgPlugins.push({
-        name: 'lepto.webp',
-        quality: 80
+        name: 'lepto-webp',
+        quality: 70
       });
     }
     if (a.vibrant) {
