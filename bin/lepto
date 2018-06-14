@@ -93,7 +93,8 @@ if (typeof loadedConfig.config.logLevel !== 'undefined') {
 
 const runner = lepto(loadedConfig.config, {
   cli: true,
-  cliConfig
+  cliConfig,
+  configFile: loadedConfig.filepath
 })
   .on('all', (data, event) => {
     if (typeof data.msg !== 'undefined') {
