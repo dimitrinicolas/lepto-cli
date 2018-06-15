@@ -4,7 +4,7 @@ const chokidar = require('chokidar');
 const program = require('commander');
 const path = require('path');
 
-const lepto = require('../../lepto/src/lepto.js');
+const lepto = require('lepto');
 
 const loadConfig = require('../src/load-config.js');
 const log = require('../src/log.js');
