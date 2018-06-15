@@ -115,7 +115,7 @@ const setup = () => {
       input: a.input,
       output: a.output,
       watch: a.watch,
-      dataOutput: null
+      openGUI: true
     };
     if (a.dataOutput !== null) {
       jsonContent.dataOutput = a.dataOutput;

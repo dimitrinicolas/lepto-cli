@@ -4,6 +4,7 @@ const colors = {
   red: chalk.red.bold,
   orange: chalk.keyword('orange'),
   white: chalk.keyword('lightgrey'),
+  lightblue: chalk.rgb(91, 230, 255),
   green: chalk.keyword('lime')
 };
 

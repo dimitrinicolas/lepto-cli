@@ -98,7 +98,7 @@ const runner = lepto(loadedConfig.config, {
 })
   .on('all', (data, event) => {
     if (typeof data.msg !== 'undefined') {
-      log(data.msg, Object.assign(data, log.params[event] || {}));
+      log(data.msg, Object.assign(log.params[event] || {}, data));
     }
   })
 
