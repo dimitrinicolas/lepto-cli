@@ -109,7 +109,7 @@ const setup = () => {
   ];
 
   inquirer.prompt(questions).then(a => {
-    const deps = ['lepto-cli'];
+    const deps = [];
 
     let jsonContent = {
       input: a.input,
