@@ -122,15 +122,6 @@ const setup = () => {
     }
     jsonContent.filters = [];
 
-    jsonContent.filters.push({
-      name: 'lepto.jpeg',
-      quality: parseInt(a.jpgQ)
-    });
-    jsonContent.filters.push({
-      name: 'lepto.png',
-      compression: 9
-    });
-
     const jpgPlugins = [];
     const pngPlugins = [];
     if (a.resizeMaxWidth || a.retina) {
@@ -160,18 +151,27 @@ const setup = () => {
       jpgPlugins.push('lepto-vibrant-color');
     }
 
-    if (jpgPlugins.length) {
-      jsonContent.filters.push({
-        glob: '**/*.{jpg,jpeg}',
-        use: jpgPlugins
-      });
-    }
-    if (pngPlugins.length) {
-      jsonContent.filters.push({
-        glob: '**/*.png',
-        use: pngPlugins
-      });
-    }
+    jpgPlugins.push({
+      name: 'lepto.jpeg',
+      quality: parseInt(a.jpgQ)
+    });
+    pngPlugins.push({
+      name: 'lepto.png',
+      compression: 9
+    });
+
+    jsonContent.filters.push({
+      glob: [
+        '**/*.jpg',
+        '**/*.jpeg'
+      ],
+      use: jpgPlugins
+    });
+    jsonContent.filters.push({
+      glob: '**/*.png',
+      use: pngPlugins
+    });
+
     const jsonStr = JSON.stringify(jsonContent, null, 2);
     fse.outputFile(a.filepath, jsonStr, err => {
       if (err) {
