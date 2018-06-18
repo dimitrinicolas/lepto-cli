@@ -1,10 +1,12 @@
-# lepto-cli
+# lepto-cli ![Travis CI](https://img.shields.io/travis/dimitrinicolas/lepto-cli.svg)
 
 ```shell
 $ npm i -g lepto-cli
 ```
 
-To get started with lepto, run `lepto setup`.
+To get started with lepto, run `lepto setup`, be sure to have a `package.json`, if not, create it with `npm init` or lepto-cli will create it.
+
+Use `--config` (`-c`) argument to give your lepto config path.
 
 ```
 Usage: lepto [options] [command]
@@ -28,6 +30,8 @@ Usage: lepto [options] [command]
 ```
 
 ## Contributing
+
+Install globally this repo:
 
 ```shell
 $ npm i -g

@@ -27,7 +27,7 @@ const params = {
   }
 };
 
-let levels = {
+const levels = {
   max: 3,
   min: 0
 };
