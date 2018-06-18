@@ -1,13 +1,13 @@
 const chalk = require('chalk');
 const childProcess = require('child_process');
 const cmdify = require('cmdify');
+const fs = require('fs');
 const fse = require('fs-extra');
 const inquirer = require('inquirer');
 const path = require('path');
 
 const setup = () => {
   const questions = [
-
     {
       type: 'input',
       name: 'filepath',
@@ -112,8 +112,8 @@ const setup = () => {
     const deps = [];
 
     let jsonContent = {
-      input: a.input,
-      output: a.output,
+      input: a.input.trim(),
+      output: a.output.trim(),
       watch: a.watch,
       openGUI: true
     };
@@ -193,7 +193,7 @@ const setup = () => {
         console.log(`\nThen, you can launch lepto with this command:`);
         console.log('$', chalk.white.bold(`lepto -c ${a.filepath}\n`));
 
-        setTimeout(() => {
+        const askForInstallation = () => {
           inquirer.prompt([
             {
               type: 'confirm',
@@ -218,25 +218,47 @@ const setup = () => {
               for (let dep of deps) {
                 cmdOpts.push(dep);
               }
-              let installationErrors = false;
               const cmd = childProcess.spawn(cmdify('npm'), cmdOpts, { stdio: 'pipe' });
               cmd.stdout.pipe(ui.log);
               cmd.stdout.on('data', function(data) {
-                console.log(data);
+                console.log(chalk.white(data));
               });
               cmd.stderr.on('data', function(data) {
-                installationErrors = true;
-                console.log(chalk.red(data));
+                if (!/No description/gi.test(data.toString())
+                  && !/created a lockfile/gi.test(data.toString())
+                  && !/No repository field/gi.test(data.toString())
+                  && !/No license field/gi.test(data.toString())) {
+                  console.log(chalk.red(data));
+                }
               });
               cmd.on('close', () => {
-                if (!installationErrors) {
-                  ui.updateBottomBar(chalk.keyword('lime')('\nInstallation done!\n'));
-                }
+                ui.updateBottomBar(chalk.keyword('lime')('\nInstallation done!\n'));
                 process.exit();
               });
             }
           });
-        }, 300);
+        };
+
+        if (!fs.existsSync('./package.json')) {
+          console.log(chalk.white('No package.json found, I create it for you\n'));
+          const pkgContent = {
+            name: process.cwd().substr(process.cwd().lastIndexOf('/') + 1, process.cwd().length),
+            version: '1.0.0',
+            description: ''
+          };
+          fse.outputFile('./package.json', JSON.stringify(pkgContent, null, 2), err => {
+            if (err) {
+              console.log(chalk.red.bold(`Unable to create package.json`));
+              console.log(`Here is package.json content:\n`);
+              console.log(pkgContent);
+              console.log(`\n`);
+            }
+            setTimeout(askForInstallation, 300);
+          });
+        }
+        else {
+          setTimeout(askForInstallation, 300);
+        }
 
       }
     })

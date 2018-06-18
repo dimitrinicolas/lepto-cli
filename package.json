@@ -1,6 +1,6 @@
 {
   "name": "lepto-cli",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "CLI for Lepto tool",
   "bin": {
     "lepto": "./bin/lepto"
@@ -29,7 +29,7 @@
     "commander": "^2.15.1",
     "fs-extra": "^6.0.1",
     "inquirer": "^6.0.0",
-    "lepto": "^1.0.5"
+    "lepto": "^1.0.6"
   },
   "scripts": {
     "test": "ava"
