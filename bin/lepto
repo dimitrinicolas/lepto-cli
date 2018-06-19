@@ -117,7 +117,7 @@ const runner = lepto(loadedConfig.config, {
     if (data.output.length > 1) {
       outputsText = '[ ' + outputsText.join(', ') + ' ]';
     }
-    log(`Processed ${data.adj}${data.input} (${beautifier.bytes(data.inputSize)}) in ${beautifier.time(data.timeSpent)} -> ${outputsText}, ${saveText}`, log.params.success);
+    log(`Processed ${data.adj}${data.input} (${beautifier.bytes(data.inputSize)}) in ${beautifier.time(data.timeSpent)} → ${outputsText}, ${saveText}`, log.params.success);
   });
 
 if (loadedConfig.config.watchConfig) {

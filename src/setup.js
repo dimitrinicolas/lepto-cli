@@ -6,6 +6,7 @@ const fse = require('fs-extra');
 const inquirer = require('inquirer');
 const path = require('path');
 
+let filepath;
 const setup = () => {
   const questions = [
     {
@@ -157,7 +158,7 @@ const setup = () => {
     });
     pngPlugins.push({
       name: 'lepto.png',
-      compression: 9
+      quality: '70-80'
     });
 
     jsonContent.filters.push({
@@ -173,9 +174,10 @@ const setup = () => {
     });
 
     const jsonStr = JSON.stringify(jsonContent, null, 2);
-    fse.outputFile(a.filepath, jsonStr, err => {
+    filepath = a.filepath;
+    fse.outputFile(filepath, jsonStr, err => {
       if (err) {
-        console.log(chalk.red.bold(`\nUnable to save config file ${a.filepath}`));
+        console.log(chalk.red.bold(`\nUnable to save config file ${filepath}`));
         console.log(`Here is the json file content:\n`);
         console.log(jsonStr);
         console.log(`\n`);
@@ -189,9 +191,9 @@ const setup = () => {
           console.log(`\nGreat choice! Find more into lepto's readme: https://github.com/dimitrinicolas/lepto`);
         }
         console.log(`\nYou have some plugins to install:`);
-        console.log('$', chalk.white.bold(`npm i -D ${deps.join(' ')}`));
+        console.log('$', chalk.bold(`npm i -D ${deps.join(' ')}`));
         console.log(`\nThen, you can launch lepto with this command:`);
-        console.log('$', chalk.white.bold(`lepto -c ${a.filepath}\n`));
+        console.log('$', chalk.bold(`lepto -c ${filepath}\n`));
 
         const askForInstallation = () => {
           inquirer.prompt([
@@ -203,7 +205,7 @@ const setup = () => {
             },
           ]).then(a => {
             if (!a.install) {
-              console.log(`\nOkay!:`);
+              console.log(`\nOkay!`);
             }
             else {
               const loader = ['/ Installing dependencies', '| Installing dependencies', '\\ Installing dependencies', '- Installing dependencies'];
@@ -212,7 +214,7 @@ const setup = () => {
 
               setInterval(() => {
                 ui.updateBottomBar(loader[i++ % 4]);
-              }, 300);
+              }, 170);
 
               const cmdOpts = ['i', '-D'];
               for (let dep of deps) {
@@ -221,18 +223,20 @@ const setup = () => {
               const cmd = childProcess.spawn(cmdify('npm'), cmdOpts, { stdio: 'pipe' });
               cmd.stdout.pipe(ui.log);
               cmd.stdout.on('data', function(data) {
-                console.log(chalk.white(data));
+                console.log('\n' + chalk(data));
               });
               cmd.stderr.on('data', function(data) {
                 if (!/No description/gi.test(data.toString())
                   && !/created a lockfile/gi.test(data.toString())
                   && !/No repository field/gi.test(data.toString())
                   && !/No license field/gi.test(data.toString())) {
-                  console.log(chalk.red(data));
+                  console.log('\n' + chalk.red(data));
                 }
               });
               cmd.on('close', () => {
-                ui.updateBottomBar(chalk.keyword('lime')('\nInstallation done!\n'));
+                ui.updateBottomBar(chalk.hex('#33cc33')('\n✔ ') + 'Installation done!\n');
+                console.log(`\nYou can launch lepto with this command:`);
+                console.log('$', chalk.bold(`lepto -c ${filepath}`));
                 process.exit();
               });
             }
@@ -240,7 +244,7 @@ const setup = () => {
         };
 
         if (!fs.existsSync('./package.json')) {
-          console.log(chalk.white('No package.json found, I create it for you\n'));
+          console.log(chalk('No package.json found, I create it for you\n'));
           const pkgContent = {
             name: process.cwd().substr(process.cwd().lastIndexOf('/') + 1, process.cwd().length),
             version: '1.0.0',
@@ -253,11 +257,11 @@ const setup = () => {
               console.log(pkgContent);
               console.log(`\n`);
             }
-            setTimeout(askForInstallation, 300);
+            setTimeout(askForInstallation, 150);
           });
         }
         else {
-          setTimeout(askForInstallation, 300);
+          setTimeout(askForInstallation, 150);
         }
 
       }

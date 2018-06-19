@@ -1,11 +1,11 @@
 const chalk = require('chalk');
 
 const colors = {
-  red: chalk.red.bold,
-  orange: chalk.keyword('orange'),
-  white: chalk.keyword('lightgrey'),
-  lightblue: chalk.rgb(91, 230, 255),
-  green: chalk.keyword('lime')
+  red:  text => chalk.red.bold('✖ ' + text),
+  orange: text => chalk.keyword('orange')('⚠ ' + text),
+  white: text => chalk('i ' + text),
+  lightblue: chalk.bold,
+  green: text => (chalk.hex('#33cc33')('✔ ') + text)
 };
 
 const params = {
@@ -68,7 +68,7 @@ const log = (txt='', opts={}) => {
       opts.color = 'green';
     }
     if (!opts.callOnceId || (opts.callOnceId && typeof onces[opts.callOnceId] === 'undefined')) {
-      console.log(colors[opts.color]('lepto - ' + txt));
+      console.log(colors[opts.color](txt));
     }
     if (opts.callOnceId && typeof onces[opts.callOnceId] === 'undefined') {
       onces[opts.callOnceId] = true;
