@@ -1,7 +1,8 @@
 {
   "name": "lepto-cli",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "CLI for Lepto tool",
+  "main": "./bin/lepto",
   "bin": {
     "lepto": "./bin/lepto"
   },
@@ -24,12 +25,12 @@
   "homepage": "https://github.com/dimitrinicolas/lepto-cli",
   "dependencies": {
     "chalk": "^2.4.1",
-    "chokidar": "^2.0.3",
+    "chokidar": "^2.0.4",
     "cmdify": "0.0.4",
-    "commander": "^2.15.1",
+    "commander": "^2.16.0",
     "fs-extra": "^6.0.1",
     "inquirer": "^6.0.0",
-    "lepto": "^1.0.6"
+    "lepto": "^1.1.0"
   },
   "scripts": {
     "test": "ava"
