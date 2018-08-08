@@ -1,4 +1,4 @@
-# lepto-cli ![Travis CI](https://img.shields.io/travis/dimitrinicolas/lepto-cli.svg)
+# lepto-cli ![Travis CI](https://img.shields.io/travis/leptojs/lepto-cli.svg)
 
 ```shell
 $ npm i -g lepto-cli
