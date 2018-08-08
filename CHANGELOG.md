@@ -1,6 +1,9 @@
 # Change Log
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.0.9 - 2018-08-08
+- lepto update.
+
 ## 1.0.8 - 2018-08-08
 - lepto update.
 
