@@ -1,6 +1,6 @@
 {
   "name": "lepto-cli",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "CLI for Lepto tool",
   "main": "./bin/lepto",
   "bin": {
@@ -33,9 +33,11 @@
     "lepto": "^1.1.0"
   },
   "scripts": {
+    "publish": "clean-publish --files fixtures",
     "test": "ava"
   },
   "devDependencies": {
-    "ava": "^0.25.0"
+    "ava": "^0.25.0",
+    "clean-publish": "^1.0.9"
   }
 }
