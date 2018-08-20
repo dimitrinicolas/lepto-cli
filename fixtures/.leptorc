@@ -1,0 +1,24 @@
+{
+  "input": "input",
+  "output": "input/output",
+  "filters": [
+    {
+      "glob": "**/*.jpg",
+      "use": [
+        {
+          "name": "lepto.jpeg",
+          "quality": 80
+        }
+      ]
+    },
+    {
+      "glob": "**/*.png",
+      "use": [
+        {
+          "name": "lepto.png",
+          "quality": 60
+        }
+      ]
+    }
+  ]
+}
