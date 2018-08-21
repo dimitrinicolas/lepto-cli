@@ -1,6 +1,9 @@
 # Change Log
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.2.0 - 2018-08-21
+- Updated lepto
+
 ## 1.1.0 - 2018-08-20
 - Auto load .leptorc config file
 - Add --logPrefix option
