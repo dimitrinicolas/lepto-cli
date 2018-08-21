@@ -22,12 +22,29 @@ program
   .version(pkg.version)
   .option('-i, --input [dir]', 'Set input directory')
   .option('-o, --output [dir]', 'Set output directory')
-  .option('-c, --config [file]', 'Path to a config file (default: lepto.config.json)')
-  .option('-d --dataOutput [file]', 'Set the output json file for the data (eg: ./output/data.json)')
+  .option(
+    '-c, --config [file]',
+    'Path to a config file (default: lepto.config.json)'
+  )
+  .option(
+    '-d --dataOutput [file]',
+    'Set the output json file for the data (eg: ./output/data.json)'
+  )
   .option('-w, --watch', 'Watch for files changes')
-  .option('-l, --logLevel [0-3]', 'Set the log level from 0 (silent) to 3 (all informations)', /^(0|1|2|3)$/i)
+  .option(
+    '-l, --logLevel [0-3]',
+    'Set the log level from 0 (silent) to 3 (all informations)',
+    /^(0|1|2|3)$/i
+  )
+  .option(
+    '-p, --logPrefix [prefix]',
+    'Set a prefix for the log, eg: "lepto"'
+  )
   .option('--watchConfig', 'Watch for config file change')
-  .option('--followUnlink', 'Remove files in the output when they are removed from the input directory');
+  .option(
+    '--followUnlink',
+    'Remove files in the output when they are removed from the input directory'
+  );
 
 program
   .command('setup')
@@ -44,47 +61,61 @@ if (commandLaunched) {
   return;
 }
 
+const prefix = typeof program.logPrefix === 'string'
+  ? `[${program.logPrefix}] `
+  : '';
+
 let loadedConfig = null;
 
 if (program.config) {
   const loaded = loadConfig(path.resolve(program.config));
   if (loaded.success) {
     loadedConfig = loaded;
-  }
-  else {
+  } else {
     log(['Lepto -', loaded.msg], log.params.error);
     return;
   }
-}
-else {
-  const jsonConfigResult = loadConfig(path.resolve(process.cwd(), './lepto.config.json'));
-  if (jsonConfigResult.success) {
-    loadedConfig = jsonConfigResult;
-  }
-  else {
-    const jsConfigResult = loadConfig(path.resolve(process.cwd(), './lepto.config.js'));
-    if (jsConfigResult.success) {
-      loadedConfig = jsConfigResult;
+} else {
+  const rcConfigResult = loadConfig(path.resolve(process.cwd(), './.leptorc'));
+  if (rcConfigResult.success) {
+    loadedConfig = rcConfigResult;
+  } else {
+    const jsonConfigResult = loadConfig(
+      path.resolve(process.cwd(), './lepto.config.json')
+    );
+    if (jsonConfigResult.success) {
+      loadedConfig = jsonConfigResult;
+    } else {
+      const jsConfigResult = loadConfig(
+        path.resolve(process.cwd(), './lepto.config.js')
+      );
+      if (jsConfigResult.success) {
+        loadedConfig = jsConfigResult;
+      }
     }
   }
 }
 
 if (!loadedConfig) {
-  log(`Lepto - No config file found, use the option --config <filepath>, or you can create one by running "lepto setup"`, log.params.error);
+  log(
+    'Lepto - No config file found, use the option --config <filepath>, or you '
+    + 'can create one by running "lepto setup"',
+    Object.assign(log.params.error, { prefix })
+  );
   return;
 }
 
 const cliConfig = {};
 const argvOpts = {
-  'input': 'input',
-  'output': 'output',
-  'watch': 'watch',
-  'watchConfig': 'watchConfig',
-  'logLevel': 'logLevel',
-  'followUnlink': 'followUnlink',
-  'dataOutput': 'dataOutput'
+  input: 'input',
+  output: 'output',
+  watch: 'watch',
+  watchConfig: 'watchConfig',
+  logLevel: 'logLevel',
+  followUnlink: 'followUnlink',
+  dataOutput: 'dataOutput'
 };
-for (let item in argvOpts) {
+for (const item in argvOpts) {
   if (typeof program[item] !== 'undefined') {
     cliConfig[argvOpts[item]] = program[item];
   }
@@ -101,39 +132,55 @@ const runner = lepto(loadedConfig.config, {
 })
   .on('all', (data, event) => {
     if (typeof data.msg !== 'undefined') {
-      log(data.msg, Object.assign(log.params[event] || {}, data));
+      log(data.msg, Object.assign(log.params[event] || {}, data, { prefix }));
     }
   })
 
   .on('error', msg => {
-    log(msg, log.params.error);
+    log(msg, Object.assign(log.params.error, { prefix }));
   })
 
-  .on('processed-file', (data) => {
+  .on('processed-file', data => {
     let maxSave = 0;
     let outputsText = [];
-    for (let i in data.output) {
-      maxSave = Math.min(Math.max(0, maxSave, 1 - data.outputSizes[i] / data.inputSize), 1);
-      outputsText.push(`${data.output[i]} (${beautifier.bytes(data.outputSizes[i])})`);
+    for (const i in data.output) {
+      if (Object.prototype.hasOwnProperty.call(data.output, i)) {
+        maxSave = Math.min(
+          Math.max(0, maxSave, 1 - data.outputSizes[i] / data.inputSize),
+          1
+        );
+        outputsText.push(
+          `${data.output[i]} (${beautifier.bytes(data.outputSizes[i])})`
+        );
+      }
     }
-    let saveText = `saved ${Math.floor(maxSave * 100 * 10) / 10 + '%'}`;
+    const saveText = `saved ${`${Math.floor(maxSave * 100 * 10) / 10}%`}`;
     if (data.output.length > 1) {
-      outputsText = '[ ' + outputsText.join(', ') + ' ]';
+      outputsText = `[ ${outputsText.join(', ')} ]`;
     }
-    log(`Processed ${data.adj}${data.input} (${beautifier.bytes(data.inputSize)}) in ${beautifier.time(data.timeSpent)} → ${outputsText}, ${saveText}`, log.params.success);
+    log(
+      (
+        `Processed ${data.adj}${data.input} `
+        + `(${beautifier.bytes(data.inputSize)}) in `
+        + `${beautifier.time(data.timeSpent)} → ${outputsText}, ${saveText}`
+      ),
+      Object.assign(log.params.success, { prefix })
+    );
   });
 
 if (loadedConfig.config.watchConfig) {
   this.configWatcher = chokidar.watch(loadedConfig.filepath, {
     ignoreInitial: true
-  }).on('all', (event, path) => {
+  }).on('all', (event, configPath) => {
     if (['add', 'change'].indexOf(event) !== -1) {
-      const newConfig = loadConfig(path);
+      const newConfig = loadConfig(configPath);
       if (newConfig.success) {
         runner.handleConfigUpdate(newConfig.config);
-      }
-      else {
-        log(['Lepto - Unable to get config file:', newConfig.msg], log.params.error);
+      } else {
+        log(
+          ['Lepto - Unable to get config file:', newConfig.msg],
+          Object.assign(log.params.error, { prefix })
+        );
       }
     }
   });

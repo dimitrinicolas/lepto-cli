@@ -1,43 +1,44 @@
 {
   "name": "lepto-cli",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "CLI for Lepto tool",
   "main": "./bin/lepto",
   "bin": {
     "lepto": "./bin/lepto"
   },
+  "keywords": ["lepto", "front-end", "images", "optimization", "cli"],
+  "author": "Dimitri NICOLAS <dimitri@fivecorp.fr>",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dimitrinicolas/lepto-cli.git"
   },
-  "keywords": [
-    "lepto",
-    "front-end",
-    "images",
-    "optimization",
-    "cli"
-  ],
-  "author": "Dimitri NICOLAS <dimitri@fivecorp.fr>",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/dimitrinicolas/lepto-cli/issues"
   },
   "homepage": "https://github.com/dimitrinicolas/lepto-cli",
+  "scripts": {
+    "publish": "clean-publish --files fixtures",
+    "lint": "eslint src/**/**/*.js",
+    "test": "ava"
+  },
   "dependencies": {
     "chalk": "^2.4.1",
     "chokidar": "^2.0.4",
     "cmdify": "0.0.4",
-    "commander": "^2.16.0",
-    "fs-extra": "^6.0.1",
-    "inquirer": "^6.0.0",
+    "commander": "^2.17.1",
+    "fs-extra": "^7.0.0",
+    "inquirer": "^6.1.0",
     "lepto": "^1.1.0"
-  },
-  "scripts": {
-    "publish": "clean-publish --files fixtures",
-    "test": "ava"
   },
   "devDependencies": {
     "ava": "^0.25.0",
-    "clean-publish": "^1.0.9"
+    "babel-eslint": "^8.2.6",
+    "clean-publish": "^1.0.9",
+    "eslint": "^5.4.0",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-jsx-a11y": "^6.1.1",
+    "eslint-plugin-react": "^7.11.1"
   }
 }

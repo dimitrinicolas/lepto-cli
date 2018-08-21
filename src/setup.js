@@ -4,7 +4,6 @@ const cmdify = require('cmdify');
 const fs = require('fs');
 const fse = require('fs-extra');
 const inquirer = require('inquirer');
-const path = require('path');
 
 let filepath;
 const setup = () => {
@@ -34,13 +33,12 @@ const setup = () => {
       default: true
     },
 
-
     {
       type: 'list',
       name: 'optimType',
       message: 'What kind of optimization do you need?',
       choices: ['Quick', 'Expert'],
-      filter: function(val) {
+      filter(val) {
         return val.toLowerCase();
       }
     },
@@ -64,7 +62,7 @@ const setup = () => {
       name: 'resize',
       message: 'Resize your images?',
       default: true,
-      when: function(a) {
+      when(a) {
         return a.optimType === 'expert';
       }
     },
@@ -73,7 +71,7 @@ const setup = () => {
       name: 'resizeMaxWidth',
       message: 'Maximum width in px',
       default: 1200,
-      when: function(a) {
+      when(a) {
         return a.optimType === 'expert' && a.resize;
       }
     },
@@ -82,16 +80,17 @@ const setup = () => {
       name: 'webp',
       message: 'webp alternative for your jpgs?',
       default: true,
-      when: function(a) {
+      when(a) {
         return a.optimType === 'expert';
       }
     },
     {
       type: 'confirm',
       name: 'vibrant',
-      message: `Regroup all the vibrants colors of your images into a single json?`,
+      message:
+        'Regroup all the vibrants colors of your images into a single json?',
       default: true,
-      when: function(a) {
+      when(a) {
         return a.optimType === 'expert';
       }
     },
@@ -99,20 +98,19 @@ const setup = () => {
       type: 'input',
       name: 'dataOutput',
       message: 'Set the path of this json file',
-      default: function(a) {
-        return a.output + '/data.json';
+      default(a) {
+        return `${a.output}/data.json`;
       },
-      when: function(a) {
+      when(a) {
         return a.optimType === 'expert' && a.vibrant;
       }
-    },
-
+    }
   ];
 
   inquirer.prompt(questions).then(a => {
     const deps = [];
 
-    let jsonContent = {
+    const jsonContent = {
       input: a.input.trim(),
       output: a.output.trim(),
       watch: a.watch,
@@ -131,7 +129,7 @@ const setup = () => {
     if (a.resizeMaxWidth) {
       jpgPlugins.push({
         name: 'lepto-resize',
-        maxWidth: parseInt(a.resizeMaxWidth)
+        maxWidth: parseInt(a.resizeMaxWidth, 10)
       });
     }
     if (a.retina) {
@@ -154,7 +152,7 @@ const setup = () => {
 
     jpgPlugins.push({
       name: 'lepto.jpeg',
-      quality: parseInt(a.jpgQ)
+      quality: parseInt(a.jpgQ, 10)
     });
     pngPlugins.push({
       name: 'lepto.png',
@@ -162,10 +160,7 @@ const setup = () => {
     });
 
     jsonContent.filters.push({
-      glob: [
-        '**/*.jpg',
-        '**/*.jpeg'
-      ],
+      glob: ['**/*.jpg', '**/*.jpeg'],
       use: jpgPlugins
     });
     jsonContent.filters.push({
@@ -178,94 +173,116 @@ const setup = () => {
     fse.outputFile(filepath, jsonStr, err => {
       if (err) {
         console.log(chalk.red.bold(`\nUnable to save config file ${filepath}`));
-        console.log(`Here is the json file content:\n`);
+        console.log('Here is the json file content:\n');
         console.log(jsonStr);
-        console.log(`\n`);
-      }
-      else {
+        console.log('\n');
+      } else {
         console.log('Config file written!');
         if (a.optimType === 'quick') {
-          console.log(`\nCool! You can include even more optimizations by looking into lepto's readme: https://github.com/dimitrinicolas/lepto`);
+          console.log(
+            '\nCool! You can include even more optimizations by looking into '
+              + "lepto's readme: https://github.com/dimitrinicolas/lepto"
+          );
+        } else if (a.optimType === 'expert') {
+          console.log(
+            "\nGreat choice! Find more into lepto's readme: "
+              + 'https://github.com/dimitrinicolas/lepto'
+          );
         }
-        else if (a.optimType === 'expert') {
-          console.log(`\nGreat choice! Find more into lepto's readme: https://github.com/dimitrinicolas/lepto`);
-        }
-        console.log(`\nYou have some plugins to install:`);
+        console.log('\nYou have some plugins to install:');
         console.log('$', chalk.bold(`npm i -D ${deps.join(' ')}`));
-        console.log(`\nThen, you can launch lepto with this command:`);
+        console.log('\nThen, you can launch lepto with this command:');
         console.log('$', chalk.bold(`lepto -c ${filepath}\n`));
 
         const askForInstallation = () => {
-          inquirer.prompt([
-            {
-              type: 'confirm',
-              name: 'install',
-              message: 'Do you want I install the dependencies?',
-              default: true
-            },
-          ]).then(a => {
-            if (!a.install) {
-              console.log(`\nOkay!`);
-            }
-            else {
-              const loader = ['/ Installing dependencies', '| Installing dependencies', '\\ Installing dependencies', '- Installing dependencies'];
-              let i = 4;
-              let ui = new inquirer.ui.BottomBar({ bottomBar: loader[i % 4] });
-
-              setInterval(() => {
-                ui.updateBottomBar(loader[i++ % 4]);
-              }, 170);
-
-              const cmdOpts = ['i', '-D'];
-              for (let dep of deps) {
-                cmdOpts.push(dep);
+          inquirer
+            .prompt([
+              {
+                type: 'confirm',
+                name: 'install',
+                message: 'Do you want I install the dependencies?',
+                default: true
               }
-              const cmd = childProcess.spawn(cmdify('npm'), cmdOpts, { stdio: 'pipe' });
-              cmd.stdout.pipe(ui.log);
-              cmd.stdout.on('data', function(data) {
-                console.log('\n' + chalk(data));
-              });
-              cmd.stderr.on('data', function(data) {
-                if (!/No description/gi.test(data.toString())
-                  && !/created a lockfile/gi.test(data.toString())
-                  && !/No repository field/gi.test(data.toString())
-                  && !/No license field/gi.test(data.toString())) {
-                  console.log('\n' + chalk.red(data));
+            ])
+            .then(b => {
+              if (!b.install) {
+                console.log('\nOkay!');
+              } else {
+                const loader = [
+                  '/ Installing dependencies',
+                  '| Installing dependencies',
+                  '\\ Installing dependencies',
+                  '- Installing dependencies'
+                ];
+                let i = 4;
+                const ui = new inquirer.ui.BottomBar({
+                  bottomBar: loader[i % 4]
+                });
+
+                setInterval(() => {
+                  ui.updateBottomBar(loader[i++ % 4]);
+                }, 170);
+
+                const cmdOpts = ['i', '-D'];
+                for (const dep of deps) {
+                  cmdOpts.push(dep);
                 }
-              });
-              cmd.on('close', () => {
-                ui.updateBottomBar(chalk.hex('#33cc33')('\n✔ ') + 'Installation done!\n');
-                console.log(`\nYou can launch lepto with this command:`);
-                console.log('$', chalk.bold(`lepto -c ${filepath}`));
-                process.exit();
-              });
-            }
-          });
+                const cmd = childProcess.spawn(cmdify('npm'), cmdOpts, {
+                  stdio: 'pipe'
+                });
+                cmd.stdout.pipe(ui.log);
+                cmd.stdout.on('data', data => {
+                  console.log(`\n${chalk(data)}`);
+                });
+                cmd.stderr.on('data', data => {
+                  if (
+                    !/No description/gi.test(data.toString())
+                    && !/created a lockfile/gi.test(data.toString())
+                    && !/No repository field/gi.test(data.toString())
+                    && !/No license field/gi.test(data.toString())
+                  ) {
+                    console.log(`\n${chalk.red(data)}`);
+                  }
+                });
+                cmd.on('close', () => {
+                  ui.updateBottomBar(
+                    `${chalk.hex('#33cc33')('\n✔ ')}Installation done!\n`
+                  );
+                  console.log('\nYou can launch lepto with this command:');
+                  console.log('$', chalk.bold(`lepto -c ${filepath}`));
+                  process.exit();
+                });
+              }
+            });
         };
 
         if (!fs.existsSync('./package.json')) {
           console.log(chalk('No package.json found, I create it for you\n'));
           const pkgContent = {
-            name: process.cwd().substr(process.cwd().lastIndexOf('/') + 1, process.cwd().length),
+            name: process
+              .cwd()
+              .substr(process.cwd().lastIndexOf('/') + 1, process.cwd().length),
             version: '1.0.0',
             description: ''
           };
-          fse.outputFile('./package.json', JSON.stringify(pkgContent, null, 2), err => {
-            if (err) {
-              console.log(chalk.red.bold(`Unable to create package.json`));
-              console.log(`Here is package.json content:\n`);
-              console.log(pkgContent);
-              console.log(`\n`);
+          fse.outputFile(
+            './package.json',
+            JSON.stringify(pkgContent, null, 2),
+            error => {
+              if (error) {
+                console.log(chalk.red.bold('Unable to create package.json'));
+                console.log('Here is package.json content:\n');
+                console.log(pkgContent);
+                console.log('\n');
+              }
+              setTimeout(askForInstallation, 150);
             }
-            setTimeout(askForInstallation, 150);
-          });
-        }
-        else {
+          );
+        } else {
           setTimeout(askForInstallation, 150);
         }
-
       }
-    })
+    });
   });
 };
 

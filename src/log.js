@@ -1,11 +1,11 @@
 const chalk = require('chalk');
 
 const colors = {
-  red:  text => chalk.red.bold('✖ ' + text),
-  orange: text => chalk.keyword('orange')('⚠ ' + text),
-  white: text => chalk('i ' + text),
-  lightblue: chalk.bold,
-  green: text => (chalk.hex('#33cc33')('✔ ') + text)
+  red: (text, prefix) => chalk.red.bold(`${prefix}✖ ${text}`),
+  orange: (text, prefix) => chalk.keyword('orange')(`${prefix}⚠ ${text}`),
+  white: (text, prefix) => chalk(`${prefix}i ${text}`),
+  lightblue: (text, prefix) => chalk.bold(`${prefix}${text}`),
+  green: (text, prefix) => chalk.green(`${prefix}✔ `) + text
 };
 
 const params = {
@@ -33,32 +33,36 @@ const levels = {
 };
 let logLevel = 3;
 
-let onces = {};
+const onces = {};
 
 const getLevel = () => {
   return logLevel;
-}
+};
 
-const getLevelCode = (level) => {
+const getLevelCode = level => {
   if (typeof level === 'string' && typeof levels[level] !== 'undefined') {
     return levels[level];
   }
-  else if (typeof level === 'number') {
+  if (typeof level === 'number') {
     return Math.min(Math.max(level, levels.min), levels.max);
   }
   return levels.max;
-}
+};
 
-const setLevel = (level) => {
+const setLevel = level => {
   logLevel = getLevelCode(level);
 };
 
-const log = (txt='', opts={}) => {
-  opts = Object.assign({}, {
-    color: 'green',
-    level: levels.max,
-    callOnceId: null
-  }, opts);
+const log = (txt = '', opts = {}) => {
+  opts = Object.assign(
+    {},
+    {
+      color: 'green',
+      level: levels.max,
+      callOnceId: null
+    },
+    opts
+  );
   opts.level = getLevelCode(opts.level);
   if (Array.isArray(txt)) {
     txt = txt.join(' ');
@@ -67,8 +71,11 @@ const log = (txt='', opts={}) => {
     if (typeof colors[opts.color] === 'undefined') {
       opts.color = 'green';
     }
-    if (!opts.callOnceId || (opts.callOnceId && typeof onces[opts.callOnceId] === 'undefined')) {
-      console.log(colors[opts.color](txt));
+    if (
+      !opts.callOnceId
+      || (opts.callOnceId && typeof onces[opts.callOnceId] === 'undefined')
+    ) {
+      console.log(colors[opts.color](txt, opts.prefix || ''));
     }
     if (opts.callOnceId && typeof onces[opts.callOnceId] === 'undefined') {
       onces[opts.callOnceId] = true;
@@ -76,4 +83,9 @@ const log = (txt='', opts={}) => {
   }
 };
 
-module.exports = Object.assign(log, { getLevel, getLevelCode, setLevel, params });
+module.exports = Object.assign(log, {
+  getLevel,
+  getLevelCode,
+  setLevel,
+  params
+});
